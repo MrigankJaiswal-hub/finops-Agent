@@ -21,27 +21,26 @@ AI-assisted FinOps for MSPs/IT: analyze billing, benchmark waste, recommend cost
 
 ## 📁 Monorepo layout
 
-
-
 finops-Agent/
-├─ frontend/                      # Vite + React app
-│  ├─ src/
-│  │  ├─ utils/api.js            # API client (injects OIDC token)
-│  │  └─ utils/authDebug.js      # OIDC token helpers
-│  ├─ public/
-│  │  └─ finops-logo.png
-│  └─ .env.example
+├─ frontend/ # Vite + React app
+│ ├─ src/
+│ │ ├─ utils/api.js # API client (injects OIDC token)
+│ │ └─ utils/authDebug.js # OIDC token helpers
+│ ├─ public/
+│ │ └─ finops-logo.png
+│ └─ .env.example
 └─ sam-deploy/
 └─ finops-backend/
 ├─ api/
-│  ├─ app.py
-│  ├─ lambda_handler.py
-│  ├─ routers/
-│  │  ├─ actions_routes.py
-│  │  └─ history_routes.py
-│  ├─ models.py, db.py, utils/
-│  └─ requirements.txt
-└─ template.yml            # SAM template (HTTP API + Lambda)
+│ ├─ app.py
+│ ├─ lambda_handler.py
+│ ├─ routers/
+│ │ ├─ actions_routes.py
+│ │ └─ history_routes.py
+│ ├─ models.py, db.py, utils/
+│ └─ requirements.txt
+└─ template.yml # SAM template (HTTP API + Lambda)
+
 
 
 

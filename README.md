@@ -1,225 +1,202 @@
 
-# FinOps+ Agent
-
-AI-assisted FinOps for MSPs/IT: analyze billing, benchmark waste, recommend cost actions, and log decisions.  
-**Stack:** FastAPI on AWS Lambda (SAM), API Gateway (HTTP API), DynamoDB (action logs), S3 (uploads), Bedrock (Claude 3 Sonnet), Cognito (OIDC).  
-**Frontend:** Vite + React, CloudFront + S3 (static site), OIDC login (react-oidc-context).
+```markdown
+# 🧠 FinOps AI Agent
+> Smart, Automated Financial Operations Insights powered by **AWS Bedrock + FastAPI**
 
 ---
 
-## ✨ Features
+## 🌟 About the Project
 
-- **Upload & Analyze**: Parse CSV (S3/local), compute revenue/cost/profit, per-client license waste.
-- **Benchmarks**: Compare against industry waste % (mock or API).
-- **AI Insights**: Bedrock (Claude Sonnet) generates savings recommendations.
-- **Actions**: One-click “Reduce waste 10%”, “Reprice low-margin”, etc. Stored as immutable **Action Logs**.
-- **History**: Shows uploads, actions, and latest key.
-- **Secure**: Cognito OIDC login; token → API Gateway auth; CORS locked to your CloudFront domain.
+**FinOps AI Agent** is an intelligent cloud-native assistant that helps organizations **analyze, optimize, and automate financial operations (FinOps)**.
 
+It combines the power of **AWS Bedrock**, **FastAPI**, and **React** to deliver real-time cost insights, AI-driven recommendations, and automated execution workflows — empowering IT, finance, and operations teams to make smarter, data-driven decisions with minimal manual effort.
+
+Developed as part of advanced AI and cloud hackathons, the project demonstrates how **agentic AI** can transform traditional FinOps into an **autonomous decision-making system**.
 
 ---
 
-## 📁 Monorepo layout
+## ⚙️ Key Features
 
-finops-Agent/
-├─ frontend/ # Vite + React app
-│ ├─ src/
-│ │ ├─ utils/api.js # API client (injects OIDC token)
-│ │ └─ utils/authDebug.js # OIDC token helpers
-│ ├─ public/
-│ │ └─ finops-logo.png
-│ └─ .env.example
-└─ sam-deploy/
-└─ finops-backend/
-├─ api/
-│ ├─ app.py
-│ ├─ lambda_handler.py
-│ ├─ routers/
-│ │ ├─ actions_routes.py
-│ │ └─ history_routes.py
-│ ├─ models.py, db.py, utils/
-│ └─ requirements.txt
-└─ template.yml # SAM template (HTTP API + Lambda)
-
-
-
+| Category | Description |
+|-----------|--------------|
+| 🔍 **Analyze** | Ingest and parse cloud billing CSV data from S3 to identify cost anomalies and waste. |
+| 💡 **Recommend** | Generate contextual AI-driven recommendations for optimization using Bedrock (Claude 3 Sonnet). |
+| ⚙️ **Execute** | Trigger automation actions like instance right-sizing, budget alerts, and forecast updates. |
+| 📈 **Track** | Monitor and visualize KPIs such as monthly trends, spend per service, and budget adherence. |
+| 🔐 **Secure Auth** | Integrated AWS Cognito authentication with OIDC and JWT token verification. |
+| ☁️ **Cloud-Native** | Fully serverless backend with API Gateway, Lambda, S3, and DynamoDB. |
+| 📜 **History Log** | Persist historical FinOps insights and user-triggered actions in DynamoDB. |
 
 ---
 
-## 🔧 Prereqs
+## 🧩 Architecture Overview
 
-- Node.js 18+ (or 20+), PNPM/NPM/Yarn
-- Python 3.12
-- AWS CLI v2 + SAM CLI
-- AWS account with permissions (CloudFront, S3, API Gateway, Lambda, Cognito, DynamoDB)
-- (Optional) Elastic IP allowlist/Proxy, if corporate network restricts `github.com`
+```
 
----
+[Frontend: React + OIDC]
+|
+↓
+[API Gateway + Lambda (FastAPI via Mangum)]
+|
+↓
+[Bedrock (Claude 3 Sonnet) + DynamoDB + S3]
 
-## 🔐 Cognito (OIDC)
-
-1. Create **User Pool** and **App Client** (no secret).
-2. App client callback URLs:  
-   - `https://<your-cf-domain>/` (prod)  
-   - `http://localhost:5173/` (dev)
-3. Allowed logout URLs: same as above.
-4. **Scopes**: `openid email profile`.
-5. Note these for envs:
-   - **REGION**: e.g. `us-east-2`
-   - **USER_POOL_ID**: e.g. `us-east-2_XXXX`
-   - **CLIENT_ID**: e.g. `aaaa...`
-   - **COGNITO_DOMAIN** (Hosted UI domain, optional if using discovery via `authority`).
-
-### Frontend `.env` (copy to `frontend/.env`)
-```env
-# API gateway base (no trailing slash)
-VITE_API_BASE=https://<your-api-id>.execute-api.us-east-1.amazonaws.com
-
-# Cognito OIDC (react-oidc-context via authority/metadata)
-VITE_COGNITO_REGION=us-east-2
-VITE_USER_POOL_ID=us-east-2_XXXX
-VITE_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
-VITE_REDIRECT_URI=https://<your-cf-domain>/
 ````
 
 ---
 
-## 🚀 Backend Deploy (SAM)
+## 🧠 Tech Stack
 
-From `sam-deploy/finops-backend`:
-
-```powershell
-# Build
-sam build --profile <aws-profile> --region us-east-1
-
-# Deploy (reuses an existing DynamoDB table "FinOpsActions")
-sam deploy `
-  --no-confirm-changeset `
-  --parameter-overrides S3DataBucket=<your-data-bucket> ExistingActionsTableName=FinOpsActions `
-  --capabilities CAPABILITY_IAM `
-  --profile <aws-profile> `
-  --region us-east-1
-```
-
-**Outputs** will show `ApiUrl` like:
-
-```
-https://<api-id>.execute-api.us-east-1.amazonaws.com/
-```
-
-### Environment (SAM `template.yml`)
-
-* CORS already allows:
-
-  * `https://<your CloudFront domain>`
-  * `http://localhost:5173`
-* Make sure your **DynamoDB** table `FinOpsActions` exists (PK: `id` as number, `time` as ISO is fine).
-* If you don’t want DynamoDB: switch to the provided **SQLite-to-Dynamo adapter** or stub persistence.
+| Layer | Technologies |
+|-------|---------------|
+| **Frontend** | React (Vite) + TailwindCSS + react-oidc-context |
+| **Backend** | FastAPI + Mangum + SQLAlchemy |
+| **AI Integration** | AWS Bedrock (Anthropic Claude 3 Sonnet) |
+| **Storage** | S3 (billing data) + DynamoDB (history & logs) |
+| **Auth** | AWS Cognito OIDC |
+| **Infra & CI/CD** | AWS SAM + GitHub Actions |
+| **Deployment** | API Gateway + Lambda + CloudFront |
 
 ---
 
-## 🌐 Frontend Deploy (S3 + CloudFront)
+## 🚀 Getting Started
 
-```powershell
-# Build Vite app
-cd frontend
-npm install
-npm run build
-
-# Create S3 bucket (us-east-1 special case – no LocationConstraint)
-aws s3api create-bucket --bucket <your-frontend-bucket> --region us-east-1 --profile <aws-profile>
-
-# Upload /dist
-aws s3 sync dist/ s3://<your-frontend-bucket>/ --delete --profile <aws-profile>
-
-# Create CloudFront distribution with OAC (recommended)
-# (Use your working OAC/Distribution from earlier. Ensure bucket policy allows CF distribution ARN.)
-# Then invalidate:
-aws cloudfront create-invalidation `
-  --distribution-id <DIST_ID> `
-  --paths "/*" `
-  --profile <aws-profile>
-```
-
-**Tip:** Your S3 bucket policy should allow only your CloudFront distribution via `AWS:SourceArn`.
+### 🧱 Prerequisites
+- **Node.js** ≥ 18  
+- **Python** ≥ 3.12  
+- **AWS CLI** configured with SSO or IAM profile  
+- **AWS SAM CLI** installed  
 
 ---
 
-## 🧪 Local Dev
+### 🔧 Setup Instructions
 
-**Backend (local)**
-You can run the FastAPI app locally too (if you have a local variant):
+#### Clone the Repository
+```bash
+git clone https://github.com/MrigankJaiswal-hub/finops-Agent.git
+cd finops-agent
+````
 
-```powershell
-# example if you have a local FastAPI runner
-uvicorn app:app --reload --port 8000
+#### Backend Setup
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate  # (for Windows)
+pip install -r requirements.txt
+uvicorn app:app --reload
 ```
 
-**Frontend (local)**
+#### Frontend Setup
 
-```powershell
+```bash
 cd frontend
 npm install
 npm run dev
-# open http://localhost:5173
 ```
 
-Set `VITE_API_BASE=http://localhost:8000` in `frontend/.env` for local API.
+Visit **[http://localhost:5173](http://localhost:5173)**
 
 ---
 
-## 🔗 Key Endpoints
-
-* `GET /health` → `{ status: "ok" }`
-* `GET /analyze?source=auto|local`
-* `GET /benchmarks?industry=msp`
-* `GET /history` / `GET /history/recent`
-* `POST /history/add` → `{ message, kind, key? }`
-* `POST /actions/execute` → `{ action: { title, targets[], est_impact_usd? }, preview_only? }`
-
-> All endpoints expect an **Authorization: Bearer <id_token>** from Cognito.
-
----
-
-## ⚠️ Troubleshooting
-
-* **CORS errors**: Confirm your **CloudFront domain** is listed in SAM `HttpApi.CorsConfiguration.AllowOrigins`, then `sam deploy` again.
-* **401/403**: Check the browser has an OIDC `id_token` (react-oidc-context). Make sure your **audience** and **claims** are correct in API auth if you added authorizer.
-* **500 on `/actions/execute`**: Ensure the database persistence is writable. In Lambda, prefer **DynamoDB** (the included `template.yml` uses `FinOpsActions`).
-* **CloudFront 403 / XML AccessDenied**: S3 bucket policy must trust your distribution (`AWS:SourceArn` with `arn:aws:cloudfront::<acct>:distribution/<DIST_ID>`).
-* **VITE_COGNITO_* missing**: Check `frontend/.env` is present **before** `npm run build`. Re-deploy after fixing.
-
----
-
-## 🧾 Scripts
-
-**Frontend**
+## ☁️ AWS Deployment via SAM
 
 ```bash
-npm run dev
-npm run build
-npm run preview
-```
-
-**Backend (SAM)**
-
-```bash
+cd sam-deploy/finops-backend
 sam build
-sam deploy --guided
+sam deploy --guided \
+  --profile 390503781686_AdministratorAccess \
+  --region us-east-1 \
+  --parameter-overrides \
+    S3DataBucket=finops-demo-bucket3905 \
+    ExistingActionsTableName=FinOpsActions
+```
+
+After deployment, note the **API URL** and **Lambda function name** displayed in the outputs.
+
+---
+
+## 🗂️ Repository Structure
+
+```
+finops-agent/
+│
+├── frontend/               # React + OIDC user interface
+├── backend/                # FastAPI app + AI logic + S3 & DynamoDB utils
+├── sam-deploy/             # AWS SAM templates for Lambda + API Gateway
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 
 ---
 
-## 📜 License
+## 🧾 Release Notes
 
-MIT — use freely with attribution.
+### 🔸 **v1.0.0 – Initial Public Release**
+
+**Date:** November 2025
+**Highlights:**
+
+* Core FinOps analysis & AI insights pipeline
+* Bedrock (Claude 3 Sonnet) integration
+* DynamoDB historical tracking
+* Secure Cognito authentication (OIDC)
+* Full stack AWS-native deployment
 
 ---
 
-## 🙌 Credits
+### 🔹 **v1.1.0 – Upcoming**
 
-Built by Mrigank with AWS + Bedrock + React. If this helps your hackathon, star the repo ⭐!
+**Planned Features:**
 
-```
-`
+* Multi-tenant organization support
+* Enhanced FinOps forecasting with RAG pipeline
+* PDF-based executive summary generation
+* Multi-region Bedrock agent orchestration
+* Interactive FinOps dashboard & insights viewer
+
+---
+
+## 👩‍💻 Contributing
+
+We welcome community contributions to make **FinOps AI Agent** even better!
+
+1. Fork the repository
+2. Create a new branch:
+
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+3. Commit your changes:
+
+   ```bash
+   git commit -m "Add new feature"
+   ```
+4. Push and open a Pull Request
+
+All contributions should follow:
+
+* **PEP8** (Python backend)
+* **ESLint + Prettier** (frontend)
+* Include meaningful commit messages and documentation updates.
+
+---
+
+## 📧 Contact
+
+**Author:** Mrigank Jaiswal
+
+
+---
+
+## 🛡️ License
+
+**MIT License © 2025** — FinOps AI Agent
+Built for the **SuperOps | AWS | Google Cloud | AI Hackathons**
+
+---
+
+````
+
 

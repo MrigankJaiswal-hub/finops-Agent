@@ -1,4 +1,4 @@
-```
+
 # FinOps+ Agent
 
 AI-assisted FinOps for MSPs/IT: analyze billing, benchmark waste, recommend cost actions, and log decisions.  
@@ -21,7 +21,7 @@ AI-assisted FinOps for MSPs/IT: analyze billing, benchmark waste, recommend cost
 
 ## 📁 Monorepo layout
 
-```
+
 
 finops-Agent/
 ├─ frontend/                      # Vite + React app
@@ -43,7 +43,7 @@ finops-Agent/
 │  └─ requirements.txt
 └─ template.yml            # SAM template (HTTP API + Lambda)
 
-````
+
 
 ---
 

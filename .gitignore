@@ -1,0 +1,48 @@
+# ====================
+# Node / frontend
+# ====================
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/.env.local
+/frontend/.env.*.local
+
+# Vite specific
+/frontend/vite.config*.js
+/frontend/logs/
+/frontend/*.log
+
+# ====================
+# Python / backend
+# ====================
+/sam-deploy/finops-backend/.aws-sam/
+/sam-deploy/finops-backend/build/
+/sam-deploy/finops-backend/.venv/
+/sam-deploy/finops-backend/__pycache__/
+/sam-deploy/finops-backend/*.pyc
+/sam-deploy/finops-backend/.env
+/sam-deploy/finops-backend/.pytest_cache/
+
+# AWS Lambda deployment artifacts
+/sam-deploy/finops-backend/.aws-sam/
+/sam-deploy/finops-backend/build/
+*.zip
+
+# ====================
+# General
+# ====================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.user
+*.log
+
+# Environment variable files
+.env
+*.env
+.env.*.*
+
+# OS generated files
+*.swp

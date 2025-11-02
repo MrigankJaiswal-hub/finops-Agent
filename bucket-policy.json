@@ -1,0 +1,1 @@
+{"Version":"2012-10-17","Statement":[{"Action":["s3:GetObject"],"Condition":{"StringEquals":{"AWS:SourceArn":"arn:aws:cloudfront::390503781686:distribution/E3HETYTVATZQAC"}},"Principal":{"Service":"cloudfront.amazonaws.com"},"Resource":"arn:aws:s3:::finops-frontend-384833504/*","Effect":"Allow","Sid":"AllowCloudFrontOnly"}]}

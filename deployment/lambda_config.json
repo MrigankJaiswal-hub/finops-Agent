@@ -1,0 +1,32 @@
+{
+  "lambda": {
+    "function_name": "superops-analytics-api",
+    "runtime": "python3.11",
+    "handler": "app.handler",
+    "memory_size": 512,
+    "timeout": 30,
+    "environment_variables": {
+      "AWS_REGION": "us-east-1",
+      "S3_BUCKET": "superops-ai-data",
+      "BEDROCK_MODEL_ID": "anthropic.claude-v2",
+      "LOG_LEVEL": "INFO"
+    }
+  },
+  "api_gateway": {
+    "name": "SuperOpsAPI",
+    "stage": "prod",
+    "endpoint_type": "REGIONAL",
+    "cors": {
+      "allow_origin": "*",
+      "allow_methods": "GET,POST,OPTIONS",
+      "allow_headers": "Content-Type,Authorization"
+    }
+  },
+  "iam": {
+    "policies": [
+      "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+      "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+      "arn:aws:iam::aws:policy/AmazonBedrockFullAccess"
+    ]
+  }
+}

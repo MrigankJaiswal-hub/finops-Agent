@@ -1,0 +1,57 @@
+.ai-page { padding: 12px 18px 32px; }
+.page-title { font-size: 24px; font-weight: 700; margin: 8px 0 12px; }
+
+.toolbar-row { display:flex; gap:10px; align-items:center; margin: 8px 0 12px; flex-wrap: wrap; }
+.history-select { min-width: 440px; padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; }
+.btn { padding:8px 12px; border-radius:8px; border:1px solid #d1d5db; background:#fff; cursor:pointer; }
+.btn.primary { background:#4f46e5; color:white; border-color:#4f46e5; }
+.btn.small { padding:6px 10px; font-size: 12px; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; margin: 12px 0; }
+.card-head { display:flex; gap:12px; align-items:center; margin-bottom:8px; }
+.chip { border-radius:9999px; border:1px dashed #94a3b8; padding:4px 10px; font-size:12px; background:#f8fafc; }
+.hint { color:#6b7280; font-size:12px; }
+
+.mono-box { background:#0b1220; color:#dbeafe; padding:12px; border-radius:10px; position: relative; }
+.mono-pre { white-space: pre-wrap; margin:0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.mono-empty { color:#94a3b8; font-family: ui-monospace, monospace; }
+.mono-tools { display:flex; gap:8px; align-items: center; justify-content: flex-end; margin-top:8px; }
+.mono-tools .meta { margin-right:auto; color:#9ca3af; font-size:12px; }
+
+.kpi-row { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; margin: 8px 0 8px; }
+.kpi { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:12px; }
+.kpi-label { color:#6b7280; font-size:12px; }
+.kpi-value { font-size:20px; font-weight:700; margin-top:2px; }
+
+.table-note { color:#6b7280; font-size:12px; margin-bottom:8px; }
+.table-responsive { overflow:auto; }
+.grid { width:100%; border-collapse: collapse; }
+.grid th, .grid td { padding:10px 12px; border-top:1px solid #e5e7eb; text-align:left; }
+.grid thead th { background:#f9fafb; font-weight:600; border-top:none; }
+
+.section-title { font-size:18px; font-weight:700; margin-top:18px; }
+.section-sub { font-weight:600; margin-bottom:8px; }
+.muted { color:#6b7280; }
+
+.activity-list { list-style:none; padding-left:0; margin: 6px 0 0; }
+.activity-list li { display:flex; gap:8px; align-items:center; padding:4px 0; }
+.activity-list .dot { width:8px; height:8px; background:#22c55e; border-radius:9999px; display:inline-block; }
+
+/* src/styles/ai.css (import it once in your App) */
+.page .btn { padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; background: #f7f7fb; }
+.page .btn:hover { background: #efeff7; }
+.page .btn-primary { background: #6c5ce7; color: #fff; border-color: #6c5ce7; }
+.page .btn-warn { background: #111; color: #fff; }
+
+.page .panel { padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; }
+.page .card { padding: 12px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+.page .muted { color: #666; }
+.page .kpi { font-size: 22px; font-weight: 700; }
+.page .chip { padding: 4px 8px; border: 1px solid #e0e0ea; border-radius: 999px; background: #fafaff; font-size: 12px; }
+
+.page .tbl { width: 100%; border-collapse: collapse; }
+.page .tbl th, .page .tbl td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; }
+.page .codeblock { padding: 10px; background: #0b1020; color: #e8f1ff; border-radius: 8px; }
+.page .activity { list-style: none; margin: 0; padding: 0; }
+.page .activity li { padding: 4px 0; }

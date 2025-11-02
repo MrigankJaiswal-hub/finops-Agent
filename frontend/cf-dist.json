@@ -1,0 +1,33 @@
+{
+  "CallerReference": "finops-1001448801",
+  "Comment": "FinOps Frontend",
+  "Enabled": true,
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "s3-origin",
+        "DomainName": "finops-frontend-384833504.s3.amazonaws.com",
+        "S3OriginConfig": { "OriginAccessIdentity": "" },
+        "OriginAccessControlId": "E1YS404PX5YSWK"
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "s3-origin",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": ["GET", "HEAD"]
+    },
+    "Compress": true,
+    "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+    "OriginRequestPolicyId": "88a5eaf4-2fd4-4709-b370-b4c650ea3fcf"
+  },
+  "PriceClass": "PriceClass_100",
+  "ViewerCertificate": {
+    "CloudFrontDefaultCertificate": true,
+    "MinimumProtocolVersion": "TLSv1.2_2021"
+  },
+  "HttpVersion": "http2"
+}

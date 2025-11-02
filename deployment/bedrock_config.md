@@ -1,0 +1,1 @@
+# Bedrock API setup notes

@@ -1,0 +1,7 @@
+{
+  "Name": "finops-oac",
+  "Description": "OAC for FinOps frontend",
+  "SigningProtocol": "sigv4",
+  "SigningBehavior": "always",
+  "OriginAccessControlOriginType": "s3"
+}

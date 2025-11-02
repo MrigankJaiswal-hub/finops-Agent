@@ -1,0 +1,11 @@
+client,revenue,cost,license_waste_pct,health
+AlphaTech,9000,6500,29.2,Healthy
+BetaCorp,7000,7300,14.3,At Risk
+DeltaSoft,4800,3200,11.0,Healthy
+CloudCore,2200,2100,8.0,Stable
+S3Box,1300,1150,15.0,Watch
+LambdaLite,900,500,0.0,Healthy
+EC2Works,6200,5400,25.0,Watch
+RDSCo,4100,3900,5.0,Healthy
+FrontEdge,2000,1950,7.0,Stable
+AnalyticsX,3500,4100,18.0,At Risk

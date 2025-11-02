@@ -1,0 +1,6 @@
+Service,Cost
+AmazonEC2,4462
+AmazonRDS,3661.5
+AmazonCloudFront,404.2
+AmazonS3,121.4
+AmazonLambda,0

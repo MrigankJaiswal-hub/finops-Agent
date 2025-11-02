@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { text-size-adjust: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* ---------- Toast animations ---------- */
+@keyframes finops-toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.02);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: none;
+  }
+}
+
+@keyframes finops-toast-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+.finops-toast {
+  animation: finops-toast-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.finops-toast[data-visible="false"] {
+  animation: finops-toast-out 220ms cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+}
+
+/* soft hover lift */
+.finops-toast:hover {
+  transform: translateY(-3px) scale(1.015);
+}
+
+/* subtle spinner for FinOps+ logo during loading */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== FinOps+ Toaster Container (glass group) ===== */
+.finops-toaster-container {
+  z-index: 60;                 /* above modals/charts */
+
+/* layout */
+  padding: 8px;
+  border-radius: 16px;
+  pointer-events: none;        /* clicks pass through except the toast itself */
+  position: relative;
+
+/* frosted glass */
+  background: var(--toast-group-bg, rgba(255, 255, 255, 0.35));
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+  backdrop-filter: blur(12px) saturate(130%);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.12),
+    0 1px 0 rgba(255,255,255,0.25) inset;
+
+/* graceful fallback when backdrop-filter not supported */
+  /* Use a slightly more opaque background so it still looks like a card */
+  @supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+    background: var(--toast-group-bg-fallback, rgba(255, 255, 255, 0.75));
+  }
+}
+
+/* Allow the individual toast cards to stay clickable */
+.finops-toaster-container > div {
+  pointer-events: auto;
+}
+
+/* Subtle border to separate group from page */
+.finops-toaster-container {
+  border: 1px solid var(--toast-group-border, rgba(0,0,0,0.06));
+}
+
+/* ===== Light/Dark theming via CSS variables ===== */
+:root {
+  --toast-group-bg: rgba(255, 255, 255, 0.35);
+  --toast-group-bg-fallback: rgba(255, 255, 255, 0.75);
+  --toast-group-border: rgba(0, 0, 0, 0.06);
+
+  --toast-bg: rgba(255, 255, 255, 0.66);
+  --toast-border: rgba(0, 0, 0, 0.06);
+  --toast-fg: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --toast-group-bg: rgba(17, 24, 39, 0.45);          /* slate-900 glass */
+    --toast-group-bg-fallback: rgba(17, 24, 39, 0.82);
+    --toast-group-border: rgba(255, 255, 255, 0.08);
+
+    --toast-bg: rgba(30, 41, 59, 0.68);                /* slate-800 glass */
+    --toast-border: rgba(255, 255, 255, 0.09);
+    --toast-fg: #e5e7eb;                                /* slate-200 */
+  }
+}
+
+/* ===== Reduced motion for accessibility ===== */
+@media (prefers-reduced-motion: reduce) {
+  .finops-toaster-container {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .finops-toast {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* toast container alignment & subtle entrance */
+.finops-toast-container {
+  pointer-events: none;        /* let clicks through gaps */
+}
+.finops-toast {
+  pointer-events: auto;        /* but keep toasts clickable */
+  transform: translateY(-2px);
+  animation: finops-toast-in 220ms ease-out;
+}
+@keyframes finops-toast-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(-2px) scale(1); }
+}
+/* logo spinner for loading toast */
+@keyframes spin { to { transform: rotate(360deg); } }

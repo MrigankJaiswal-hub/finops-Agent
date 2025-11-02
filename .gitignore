@@ -46,3 +46,44 @@ Thumbs.db
 
 # OS generated files
 *.swp
+
+@"
+# Node / Vite
+node_modules/
+dist/
+.vite/
+*.log
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Python (backend & sam-deploy)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.envrc
+.poetry/
+pip-wheel-metadata/
+
+# SAM / build
+.aws-sam/
+samconfig.toml
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Coverage / test
+.coverage
+.pytest_cache/
+coverage/
+"@ | Set-Content -Encoding utf8 .gitignore
+
+git add .gitignore
+git commit -m "Add .gitignore"

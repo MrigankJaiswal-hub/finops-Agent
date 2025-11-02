@@ -1,5 +1,5 @@
 
-```markdown
+
 # 🧠 FinOps AI Agent
 > Smart, Automated Financial Operations Insights powered by **AWS Bedrock + FastAPI**
 

@@ -1,24 +1,28 @@
-# models.py
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, Integer, String, Float, DateTime, func
+# models.py — declarative Base + table classes
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy import String, Float, DateTime, Text
+from datetime import datetime
 
 Base = declarative_base()
 
 class ActionLog(Base):
     __tablename__ = "action_logs"
-    id         = Column(Integer, primary_key=True, autoincrement=True)
-    time       = Column(DateTime(timezone=True), server_default=func.now())
-    user       = Column(String(255))
-    title      = Column(String(1024))
-    targets    = Column(String(1024))
-    est_impact = Column(Float)
-    source     = Column(String(128))
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(1024), nullable=False)
+    targets: Mapped[str] = mapped_column(Text, nullable=True)
+    est_impact: Mapped[float] = mapped_column(Float, nullable=True)
+    source: Mapped[str] = mapped_column(String(255), nullable=True, default="finops-agent")
+
 
 class HistoryEvent(Base):
     __tablename__ = "history_events"
-    id      = Column(Integer, primary_key=True, autoincrement=True)
-    time    = Column(DateTime(timezone=True), server_default=func.now())
-    user    = Column(String(255))
-    kind    = Column(String(64))
-    message = Column(String(2048))
-    key     = Column(String(1024), nullable=True)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user: Mapped[str] = mapped_column(String(255), nullable=False)
+    kind: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    key: Mapped[str] = mapped_column(String(1024), nullable=True)

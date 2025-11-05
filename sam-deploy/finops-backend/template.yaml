@@ -10,9 +10,10 @@ Globals:
     Architectures: [x86_64]
     Environment:
       Variables:
+        SQLITE_URL: sqlite:////tmp/finops.db
         # ---- App configuration ----
         PROVIDER: bedrock
-        BEDROCK_REGION: us-east-1           # OK to set (not reserved)
+        BEDROCK_REGION: us-east-1
         BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
 
         # ---- Data sources ----
@@ -31,15 +32,20 @@ Globals:
         RATE_LIMIT_WINDOW_SEC: '60'
         RATE_LIMIT_MAX_REQUESTS: '15'
 
-        # ---- Action log table (reused) ----
+        # ---- DDB (reused) ----
         DDB_TABLE: !Ref ExistingActionsTableName
-        DDB_REGION: us-east-1               # OK to set
-        # DO NOT SET AWS_REGION / AWS_DEFAULT_REGION / AWS_PROFILE (reserved / unnecessary)
+        DDB_REGION: us-east-1
 
         # ---- PDF branding ----
         PDF_BRAND: "FinOps+ Agent"
         PDF_LOGO_PATH: "./static/logo.png"
         PDF_TAGLINE: "AWS + Kiros | Hackathon Prototype"
+
+        # ---- SQLAlchemy on Lambda /tmp ----
+        SQLALCHEMY_URL: sqlite:////tmp/sqlite/finops.db
+
+        # ---- FastAPI CORS middleware origin ----
+        FRONTEND_ORIGIN: https://d2gc5d8166vwh1.cloudfront.net
 
 Parameters:
   S3DataBucket:
@@ -58,16 +64,8 @@ Resources:
     Properties:
       CorsConfiguration:
         AllowOrigins:
-          - "https://d2gc5d8166vwh1.cloudfront.net"
-          - "http://localhost:5173"
-        AllowHeaders:
-          - "authorization"
-          - "content-type"
-          - "x-requested-with"
-          - "x-amz-date"
-          - "x-amz-security-token"
-          - "x-api-key"
-          - "*"
+          - https://d2gc5d8166vwh1.cloudfront.net
+          - http://localhost:5173
         AllowMethods:
           - GET
           - POST
@@ -75,7 +73,13 @@ Resources:
           - PATCH
           - DELETE
           - OPTIONS
+        AllowHeaders:
+          - "*"
+        ExposeHeaders:
+          - content-disposition
+          - content-type
         AllowCredentials: true
+        MaxAge: 600
       FailOnWarnings: false
 
   ApiFunction:
@@ -84,49 +88,18 @@ Resources:
       CodeUri: api/
       Handler: lambda_handler.handler
       Runtime: python3.12
-      Environment:
-        Variables:
-          # ---- App configuration ----
-          PROVIDER: bedrock
-          BEDROCK_REGION: us-east-1
-          BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
-
-          # ---- Data sources ----
-          S3_BUCKET: !Ref S3DataBucket
-          S3_KEY: billing_data.csv
-          S3_UPLOAD_PREFIX: uploads/
-
-          # ---- Auth (optional) ----
-          COGNITO_ENABLED: 'true'
-          COGNITO_REGION: us-east-2
-          COGNITO_USER_POOL_ID: us-east-2_3hGBifjKi
-          COGNITO_AUDIENCE: 5sop8nmqobu3fflaqres1ckvgq
-
-          # ---- Rate limiting (optional) ----
-          RATE_LIMIT_ENABLED: 'true'
-          RATE_LIMIT_WINDOW_SEC: '60'
-          RATE_LIMIT_MAX_REQUESTS: '15'
-
-          # ---- Leave DDB vars (unused by current SQLAlchemy code) ----
-          DDB_TABLE: !Ref ExistingActionsTableName
-          DDB_REGION: us-east-1
-
-          # ---- PDF branding ----
-          PDF_BRAND: "FinOps+ Agent"
-          PDF_LOGO_PATH: "./static/logo.png"
-          PDF_TAGLINE: "AWS + Kiros | Hackathon Prototype"
-
-          # ---- *** NEW: SQLAlchemy on Lambda /tmp ***
-          SQLALCHEMY_URL: sqlite:////tmp/sqlite/finops.db
-
-          # ---- *** NEW: used by FastAPI CORS middleware ***
-          FRONTEND_ORIGIN: https://d2gc5d8166vwh1.cloudfront.net
-
       Events:
         ProxyAny:
           Type: HttpApi
           Properties:
             Path: /{proxy+}
+            Method: ANY
+            ApiId: !Ref HttpApi
+        # (optional but handy) ensure root path '/' also routes
+        ProxyRoot:
+          Type: HttpApi
+          Properties:
+            Path: /
             Method: ANY
             ApiId: !Ref HttpApi
       Policies:
@@ -139,7 +112,11 @@ Resources:
             Resource: "*"
         - Statement:
             Effect: Allow
-            Action: [s3:GetObject, s3:ListBucket]
+            Action:
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:PutObject         # <-- add
+              - s3:DeleteObject      # <-- add
             Resource:
               - !Sub "arn:aws:s3:::${S3DataBucket}"
               - !Sub "arn:aws:s3:::${S3DataBucket}/*"
@@ -152,7 +129,6 @@ Resources:
               - dynamodb:Query
               - dynamodb:Scan
             Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ExistingActionsTableName}"
-
 
 Outputs:
   ApiUrl:

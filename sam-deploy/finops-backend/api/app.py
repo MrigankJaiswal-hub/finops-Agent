@@ -11,7 +11,7 @@ import tempfile
 from decimal import Decimal
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Tuple
-from fastapi import FastAPI
+
 
 from fastapi import (
     FastAPI,
@@ -29,9 +29,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from starlette.responses import PlainTextResponse, FileResponse
 
-from starlette.responses import PlainTextResponse
-from starlette.responses import Response, FileResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 # --- reportlab for PDF export ---
@@ -62,17 +61,21 @@ from utils.cognito_verify import verify_bearer  # strict JWKS verify
 from utils.superops import run_superops_action
 from utils.ddb import put_action_item
 import uuid
-from db import Base, engine
+from db import engine, get_db
+from models import Base
 from routers import actions_routes, history_routes
-from sqlalchemy.orm import Session
-from db import get_db
-from routers.history_routes import router as history_router, router_compat as history_router_compat
 from routers.mockclients_routes import router as mockclients_router
-from db import init_db
-init_db()
 
 # --- Load env ---
-load_dotenv()
+# Only load .env when NOT running on Lambda
+if os.getenv("AWS_LAMBDA_FUNCTION_NAME") is None:
+    load_dotenv()
+
+# Safety: if any AWS_* creds are empty, remove them so boto3 uses the IAM role
+for k in ("AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN"):
+    if not os.getenv(k):
+        os.environ.pop(k, None)
+
 
 # --- Logging ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -117,8 +120,7 @@ PDF_LOGO_PATH = os.getenv(
     os.path.join(os.path.dirname(__file__), "data", "logo.png")
 )
 
-# create tables on startup
-Base.metadata.create_all(bind=engine)
+
 
 print("DEBUG: Provider =", PROVIDER)
 print("DEBUG: AWS Region (effective) =", AWS_REGION_EFFECTIVE)
@@ -134,33 +136,46 @@ print("DEBUG: PUBLIC_BUDGET_SUB =", PUBLIC_BUDGET_SUB)
 print("DEBUG: ALLOW_PUBLIC_ACTIONS =", ALLOW_PUBLIC_ACTIONS)
 print("DEBUG: ALERT_WARN_PCT =", ALERT_WARN_PCT, " ALERT_BREACH_PCT =", ALERT_BREACH_PCT)
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 # --- FastAPI app ---
 app = FastAPI(title="FinOps+ Agent - Backend (Prototype)")
 
+
+# create tables only once per cold start; ignore if exist
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    logging.getLogger(__name__).warning("DB init skipped: %s", e)
+
+
+
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "https://d2gc5d8166vwh1.cloudfront.net")
 
 ALLOWED_ORIGINS = [
-    os.getenv("FRONTEND_ORIGIN", "http://localhost:5173"),
+    "https://d2gc5d8166vwh1.cloudfront.net",
     "http://localhost:5173",
 ]
-
 
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,  # keep false since we use Authorization header, not cookies
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["content-disposition","content-type"],
     max_age=600,
 )
 
-@app.get("/health")
-def health():
-    return {"status": "ok", "message": "FinOps+ backend running successfully"}
+
+
+
+@app.options("/{rest_of_path:path}")
+def cors_preflight(rest_of_path: str):
+    return Response(status_code=204)
 
 # --- Lazy mount routers so /health is safe even if a router import fails ---
 def _mount_routers():
@@ -177,10 +192,6 @@ def _mount_routers():
 
 _mount_routers()
 
-app.include_router(actions_routes.router)         # /api/actions/...
-app.include_router(actions_routes.router_compat)  # /actions...
-app.include_router(history_routes.router)         # /api/history/...
-app.include_router(history_routes.router_compat)  # /history...
 app.include_router(mockclients_router)
 
 # --------- Ensure no accidental compression/encoding on PDFs ----------
@@ -1104,10 +1115,6 @@ def root():
 def health():
     return {"status": "ok", "message": "FinOps+ backend running successfully"}
 
-# alias for your tests
-@app.get("/healthz")
-def healthz_alias():
-    return {"ok": True}
 
 @app.get("/debug-config")
 def debug_config():
@@ -1760,10 +1767,7 @@ def list_routes():
 def healthz():
     return {"ok": True}
 
-@app.options("/{rest_of_path:path}")
-def options_cors(rest_of_path: str = ""):
-    # Return 204 quickly; CORSMiddleware will add headers
-    return Response(status_code=204)
+
 
 from mangum import Mangum
 handler = Mangum(app)

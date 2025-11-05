@@ -1,69 +1,56 @@
-# backend/routers/history_routes.py
+# api/routers/history_routes.py
 from typing import Optional
-from fastapi import APIRouter, Body, Header, Query
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, Body, Header
+from sqlalchemy.orm import Session
 
-from utils.db_dynamo import put_history, query_recent
+from db import get_db, engine
+from models import Base, HistoryEvent
 
 router = APIRouter(prefix="/api/history", tags=["history"])
-router_compat = APIRouter(tags=["history-compat"])  # for /history without prefix
+router_compat = APIRouter(tags=["history-compat"])
 
-class HistoryEventIn(BaseModel):
-    kind: Optional[str] = Field(default="event")
-    message: str
-    key: Optional[str] = None
-    user: Optional[str] = None
-
-def _user(x_user_email: Optional[str], explicit: Optional[str]) -> str:
-    return explicit or x_user_email or "anonymous@demo.local"
-
-@router.get("")
-def history_list(_ts: Optional[int] = Query(default=None), limit: int = 50):
-    items = query_recent(limit=limit)
-    # Return a simple shape compatible with your UI’s normalizeHistoryList
-    keys = []
-    for it in items:
-        if it.get("Type") == "HistoryEvent" and it.get("key"):
-            keys.append(it["key"])
-    return {"items": keys}
-
-@router.get("/recent")
-def history_recent(limit: int = 50, _ts: Optional[int] = Query(default=None)):
-    items = query_recent(limit=limit)
-    out = []
-    for it in items:
-        if it.get("Type") != "HistoryEvent":
-            continue
-        out.append({
-            "id": it.get("PK", ""),
-            "time": it.get("SK"),
-            "kind": it.get("kind"),
-            "message": it.get("message"),
-            "key": it.get("key"),
-        })
-    return {"items": out}
+_tables_ready = False
+def _ensure_tables():
+    global _tables_ready
+    if _tables_ready:
+        return
+    try:
+        Base.metadata.create_all(bind=engine)
+        _tables_ready = True
+    except Exception:
+        pass
 
 @router.post("/add")
-def history_add(
-    event: HistoryEventIn = Body(...),
+def add_history(
+    payload: dict = Body(...),
+    db: Session = Depends(get_db),
     x_user_email: Optional[str] = Header(default=None),
 ):
-    u = _user(x_user_email, event.user)
-    res = put_history(user=u, kind=event.kind or "event", message=event.message, key=event.key)
-    return {"ok": True, "id": res["id"]}
+    _ensure_tables()
+    user = x_user_email or "anonymous@demo.local"
+    msg = payload.get("message") or payload.get("text") or "event"
+    kind = payload.get("kind") or "event"
+    key  = payload.get("key")
+    ev = HistoryEvent(user=user, kind=kind, message=msg, key=key)
+    db.add(ev)
+    db.commit()
+    return {"ok": True, "id": ev.id}
 
-# ----- legacy mounts -----
-@router_compat.get("/history")
-def history_list_compat(_ts: Optional[int] = Query(default=None), limit: int = 50):
-    return history_list(_ts=_ts, limit=limit)
+@router.get("")
+def list_history(db: Session = Depends(get_db)):
+    _ensure_tables()
+    rows = db.query(HistoryEvent).order_by(HistoryEvent.time.desc()).limit(200).all()
+    return {"items": [
+        {"id": r.id, "time": r.time.isoformat() if r.time else None,
+         "user": r.user, "kind": r.kind, "message": r.message, "key": r.key}
+        for r in rows
+    ]}
 
-@router_compat.get("/history/recent")
-def history_recent_compat(limit: int = 50, _ts: Optional[int] = Query(default=None)):
-    return history_recent(limit=limit, _ts=_ts)
-
+# legacy routes
 @router_compat.post("/history/add")
-def history_add_compat(
-    event: HistoryEventIn = Body(...),
-    x_user_email: Optional[str] = Header(default=None),
-):
-    return history_add(event=event, x_user_email=x_user_email)
+def add_history_compat(payload: dict = Body(...), db: Session = Depends(get_db), x_user_email: Optional[str] = Header(default=None)):
+    return add_history(payload=payload, db=db, x_user_email=x_user_email)
+
+@router_compat.get("/history")
+def list_history_compat(db: Session = Depends(get_db)):
+    return list_history(db=db)
